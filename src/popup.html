@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Currency Converter Settings</title>
+  <style>
+    body {
+      width: 250px;
+      padding: 15px;
+      font-family: sans-serif;
+    }
+    .setting-group {
+      margin-bottom: 15px;
+    }
+    select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    h3 {
+      margin-top: 0;
+    }
+    .status-message {
+      font-size: 12px;
+      margin-top: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h3>Converter Settings</h3>
+  <div class="setting-group">
+    <label for="target-currency">Target Currency:</label>
+    <select id="target-currency">
+      <option value="USD">USD - US Dollar</option>
+      <option value="EUR">EUR - Euro</option>
+      <option value="GBP">GBP - British Pound</option>
+      <option value="RUB">RUB - Russian Ruble</option>
+      <option value="JPY">JPY - Japanese Yen</option>
+      <option value="THB">THB - Thai Baht</option>
+    </select>
+  </div>
+  <button id="save-settings">Save Settings</button>
+  <p id="status" class="status-message"></p>
+
+  <script src="popup.js"></script>
+</body>
+</html>
