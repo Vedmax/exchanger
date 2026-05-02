@@ -1,13 +1,3 @@
-const CURRENCY_MAP = {
-  '$': 'USD',
-  '€': 'EUR',
-  '£': 'GBP',
-  '¥': 'JPY',
-};
-
-// Regex to find: $100 or 100 USD
-const AMOUNT_REGEX = /([$€£¥])\s?(\d+(?:[.,]\d{2})?)|(\d+(?:[.,]\d{2})?)\s?([A-Z]{3})/i;
-
 // State management
 let isButtonVisible = false;
 
@@ -30,22 +20,10 @@ document.addEventListener('mouseup', (event) => {
   const selectedText = selection.toString().trim();
 
   if (selectedText.length > 0) {
-    const match = selectedText.match(AMOUNT_REGEX);
+    const parsedData = window.CurrencyParser.parse(selectedText);
 
-    if (match) {
-      let amount, currency;
-
-      if (match[1]) { // Format: $100
-        currency = CURRENCY_MAP[match[1]] || match[1];
-        amount = parseFloat(match[2].replace(',', '.'));
-      } else if (match[4]) { // Format: 100 USD
-        amount = parseFloat(match[3].replace(',', '.'));
-        currency = match[4].toUpperCase();
-      }
-
-      if (amount !== undefined && currency) {
-        showConversionButton(event.pageX, event.pageY, amount, currency);
-      }
+    if (parsedData) {
+      showConversionButton(event.pageX, event.pageY, parsedData.amount, parsedData.currency);
     }
   }
 });
