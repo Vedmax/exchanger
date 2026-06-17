@@ -20,10 +20,14 @@ document.addEventListener('mouseup', (event) => {
   const selectedText = selection.toString().trim();
 
   if (selectedText.length > 0) {
-    const parsedData = window.CurrencyParser.parse(selectedText);
+    try {
+      const parsedData = window.CurrencyParser.parse(selectedText);
 
-    if (parsedData) {
-      showConversionButton(event.pageX, event.pageY, parsedData.amount, parsedData.currency);
+      if (parsedData) {
+        showConversionButton(event.pageX, event.pageY, parsedData.amount, parsedData.currency);
+      }
+    } catch (e) {
+      console.error('Error parsing selected text:', e);
     }
   }
 });
@@ -37,12 +41,37 @@ async function showConversionButton(x, y, amount, currency) {
   btn.style.left = `${x + 10}px`;
   btn.style.top = `${y + 10}px`;
 
-  btn.onclick = async () => {
+  btn.onclick = () => handleConversion(btn, amount, currency, removeButton);
+
+  document.body.appendChild(btn);
+  isButtonVisible = true;
+
+  // Auto-remove button if not clicked within 3 seconds
+  setTimeout(() => {
+    if (isButtonVisible) {
+      removeButton();
+    }
+  }, 3000);
+}
+
+function handleConversion(btn, amount, currency, removeButton) {
+  try {
+    // Check if extension context is still valid
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+      removeButton();
+      return;
+    }
+
     // Change button text to show loading state
     btn.innerText = 'Converting...';
     btn.disabled = true;
 
     chrome.storage.sync.get(['targetCurrency'], (result) => {
+      if (chrome.runtime.lastError) {
+        console.error(chrome.runtime.lastError);
+        removeButton();
+        return;
+      }
       const targetCurrency = result.targetCurrency || 'USD';
 
       chrome.runtime.sendMessage(
@@ -50,7 +79,13 @@ async function showConversionButton(x, y, amount, currency) {
           type: 'GET_EXCHANGE_RATE',
           data: { base: currency },
         },
-        async (response) => {
+        (response) => {
+          if (chrome.runtime.lastError) {
+            console.error(chrome.runtime.lastError);
+            removeButton();
+            return;
+          }
+
           try {
             // 1. Create the container and elements directly
             const container = document.createElement('div');
@@ -105,22 +140,15 @@ async function showConversionButton(x, y, amount, currency) {
               }
             };
             document.addEventListener('mousedown', outsideClickListener);
-
           } catch (err) {
             console.error('Error creating result UI:', err);
+            removeButton();
           }
         }
       );
     });
-  };
-
-  document.body.appendChild(btn);
-  isButtonVisible = true;
-
-  // Auto-remove button if not clicked within 3 seconds
-  setTimeout(() => {
-    if (isButtonVisible) {
-      removeButton();
-    }
-  }, 3000);
+  } catch (err) {
+    console.error('Error in conversion handler:', err);
+    removeButton();
+  }
 }
